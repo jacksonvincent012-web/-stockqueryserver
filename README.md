@@ -473,7 +473,7 @@ To deploy to Vercel, Railway, Fly.io, or Heroku:
 
 ## License
 
-MIT
+Apache 2.0
 
 ---
 
