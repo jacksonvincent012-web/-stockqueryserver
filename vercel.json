@@ -1,0 +1,16 @@
+{
+  "buildCommand": "cd frontend && npm ci && npm run build",
+  "outputDirectory": "frontend/dist",
+  "installCommand": "cd frontend && npm ci",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/stock-query-server/api/(.*)",
+      "destination": "https://stock-query-server-backend.onrender.com/stock-query-server/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
