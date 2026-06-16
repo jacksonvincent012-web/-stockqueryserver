@@ -16,7 +16,7 @@ from engine.sector_graph import SectorGraph
 from engine.merge_sort import merge_sort
 from engine.binary_search import binary_search
 from engine.benchmarks import run_benchmarks
-from simulator import Simulator
+from simulator import Simulator, StockRecord
 from auth import auth_bp, jwt_required, require_role, optional_auth
 
 app = Flask(__name__)
@@ -47,9 +47,41 @@ def _init_graph():
 
 _init_graph()
 
-# Start simulator
-simulator = Simulator(stock_map, ingestion_queue, top_k_heap, alert_stack)
-simulator.start()
+def _seed_static_data():
+    """Populate stocks with seed data for serverless deployments."""
+    import random
+    from datetime import datetime, timedelta
+    sectors = ["TECH", "FINANCE", "ENERGY", "RETAIL", "PHARMA", "AUTO", "MEDIA", "MOBILITY", "CYBERSEC"]
+    symbols_data = [
+        ("AAPL", 178.50, 52_000_000, "TECH"), ("GOOGL", 141.20, 28_000_000, "TECH"),
+        ("MSFT", 378.90, 22_000_000, "TECH"), ("AMZN", 178.25, 40_000_000, "RETAIL"),
+        ("TSLA", 248.50, 95_000_000, "AUTO"), ("JPM", 198.30, 12_000_000, "FINANCE"),
+        ("V", 275.60, 8_000_000, "FINANCE"), ("JNJ", 156.80, 7_000_000, "PHARMA"),
+        ("WMT", 172.40, 6_000_000, "RETAIL"), ("PG", 158.20, 5_000_000, "RETAIL"),
+        ("XOM", 118.90, 15_000_000, "ENERGY"), ("CVX", 155.30, 9_000_000, "ENERGY"),
+        ("PFE", 28.75, 18_000_000, "PHARMA"), ("TMO", 582.40, 2_000_000, "PHARMA"),
+        ("COST", 725.80, 4_000_000, "RETAIL"), ("NFLX", 485.60, 6_000_000, "MEDIA"),
+        ("DIS", 112.30, 11_000_000, "MEDIA"), ("ADBE", 495.20, 3_000_000, "TECH"),
+        ("NVDA", 875.30, 45_000_000, "TECH"), ("META", 505.70, 20_000_000, "MEDIA"),
+        ("UBER", 72.40, 14_000_000, "MOBILITY"), ("LYFT", 16.80, 5_000_000, "MOBILITY"),
+        ("CRWD", 345.60, 4_000_000, "CYBERSEC"), ("ZS", 182.40, 3_000_000, "CYBERSEC"),
+    ]
+    today = datetime.now()
+    for sym, price, vol, sector in symbols_data:
+        rec = StockRecord(sym, price + random.uniform(-5, 5), vol + random.randint(-1_000_000, 1_000_000), sector)
+        for day in range(90):
+            d = (today - timedelta(days=90 - day)).strftime("%Y-%m-%d")
+            p = price + random.uniform(-15, 15)
+            rec.price_history.append((d, f"{p:.2f}"))
+        stock_map.put(sym, rec)
+
+# Start simulator (skipped in serverless mode — no persistent threads)
+if not os.environ.get('VERCEL_SERVERLESS'):
+    simulator = Simulator(stock_map, ingestion_queue, top_k_heap, alert_stack)
+    simulator.start()
+else:
+    # Seed static data for serverless deployment
+    _seed_static_data()
 
 # Cache stats
 cache_hits = 0
