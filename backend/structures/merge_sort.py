@@ -1,71 +1,78 @@
-"""MergeSort — Hand-written O(n log n) sorting algorithm."""
+"""
+PHASE 2 — DSA Structure 6: MergeSort
+Rubric requirement: Sorting (at least one O(n log n) sort)
+
+WHY MERGE SORT HERE?
+  The `/stocks/<sym>/history` endpoint returns a stock's 90-day
+  price history sorted by date.  Merge Sort is:
+    • Stable  — preserves chronological order for equal dates
+    • O(n log n) worst-case  — no adversarial input degrades it
+    • O(n) space  — acceptable for n ≤ 100,000 price ticks
+
+  Python's built-in TimSort (used by sorted() and list.sort()) is
+  also O(n log n) and faster in practice, but implementing Merge
+  Sort explicitly satisfies the rubric requirement and demonstrates
+  understanding of the divide-and-conquer paradigm.
+
+COMPLEXITY:
+  sort(list)  O(n log n) time, O(n) space
+"""
 
 
-def merge(left, right):
-    """Merge two sorted lists. O(n)."""
+def merge_sort(arr: list, key=None) -> list:
+    """
+    Classic top-down merge sort.
+
+    Parameters
+    ----------
+    arr : list
+        The list to sort.  May contain any comparable elements.
+    key : callable, optional
+        A function of one argument used to extract a comparison key
+        from each element (like sorted(..., key=...)).
+
+    Returns
+    -------
+    list
+        A new list sorted in ascending order.
+
+    Time:  O(n log n)  —  2T(n/2) + O(n)  →  Θ(n log n)
+    Space: O(n)        —  auxiliary arrays during merge phase
+    """
+
+    if key is None:
+        key = lambda x: x
+
+    if len(arr) <= 1:
+        return list(arr)
+
+    mid = len(arr) // 2
+    left_half = merge_sort(arr[:mid], key=key)
+    right_half = merge_sort(arr[mid:], key=key)
+
+    return _merge(left_half, right_half, key)
+
+
+def _merge(left: list, right: list, key) -> list:
+    """
+    Merge two sorted lists into a single sorted list.
+    O(n) time, O(n) space.
+    """
     result = []
     i = j = 0
 
     while i < len(left) and j < len(right):
-        if left[i] <= right[j]:
+        if key(left[i]) <= key(right[j]):
             result.append(left[i])
             i += 1
         else:
             result.append(right[j])
             j += 1
 
-    result.extend(left[i:])
-    result.extend(right[j:])
+    # Append any remaining elements
+    if i < len(left):
+        result.extend(left[i:])
+    if j < len(right):
+        result.extend(right[j:])
+
     return result
-
-
-def merge_sort(arr):
-    """Sort array using merge sort. O(n log n) time, O(n) space."""
-    if len(arr) <= 1:
-        return arr
-
-    mid = len(arr) // 2
-    left = merge_sort(arr[:mid])
-    right = merge_sort(arr[mid:])
-
-    return merge(left, right)
-
-
-def merge_sort_in_place(arr, left=0, right=None):
-    """In-place merge sort (modifies original array). O(n log n) time, O(n) space for temp."""
-    if right is None:
-        right = len(arr) - 1
-
-    if left < right:
-        mid = (left + right) // 2
-        merge_sort_in_place(arr, left, mid)
-        merge_sort_in_place(arr, mid + 1, right)
-        _merge_in_place(arr, left, mid, right)
-
-
-def _merge_in_place(arr, left, mid, right):
-    """Helper for in-place merge."""
-    left_arr = arr[left:mid + 1]
-    right_arr = arr[mid + 1:right + 1]
-
-    i = j = 0
-    k = left
-
-    while i < len(left_arr) and j < len(right_arr):
-        if left_arr[i] <= right_arr[j]:
-            arr[k] = left_arr[i]
-            i += 1
-        else:
-            arr[k] = right_arr[j]
-            j += 1
-        k += 1
-
-    while i < len(left_arr):
-        arr[k] = left_arr[i]
-        i += 1
-        k += 1
-
-    while j < len(right_arr):
-        arr[k] = right_arr[j]
-        j += 1
-        k += 1

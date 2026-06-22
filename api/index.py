@@ -1,13 +1,17 @@
-"""Vercel serverless entry point for Stock Query Server API."""
-
-import sys
+"""
+Vercel serverless entry point.
+Sets SERVERLESS=1 so the simulator thread is skipped,
+then delegates all /api/* requests to the Flask app.
+"""
 import os
+import sys
+
+os.environ['SERVERLESS'] = '1'
+
+# Add backend/ to path so 'structures' and 'api' imports work
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'backend'))
 
-# Disable simulator for serverless (no persistent threads)
-os.environ['VERCEL_SERVERLESS'] = '1'
+from api.server import app  # noqa: F401 — Vercel needs the name 'app'
 
-from api.server import app
-
-# Vercel serverless handler
+# Vercel expects a callable named 'handler' or the module-level 'app'
 handler = app
