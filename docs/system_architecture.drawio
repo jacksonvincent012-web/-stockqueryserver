@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="draw.io" modified="2026-06-22T07:53:00Z" agent="draw.io" version="20.8.16" etag="stock-query-arch">
+  <diagram id="stock-query-server" name="System Architecture">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Title -->
+        <mxCell id="title" value="Stock Query Server — System Architecture" style="text;html=1;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="10" width="460" height="40"/>
+        </mxCell>
+
+        <!-- Client Layer -->
+        <mxCell id="clientLayer" value="Client Layer" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;rounded=1;fillColor=#080c18;fontColor=#ffffff;strokeColor=#fbbf24;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="220" height="180"/>
+        </mxCell>
+        <mxCell id="reactUI" value="React/TS Frontend (Vite)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#1a1a3e;fontColor=#ffffff;strokeColor=#fbbf24;" vertex="1" parent="clientLayer">
+          <mxGeometry x="0" y="30" width="220" height="40"/>
+        </mxCell>
+        <mxCell id="htmlUI" value="HTML/CSS/JS Fallback" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#1a1a3e;fontColor=#ffffff;strokeColor=#fbbf24;" vertex="1" parent="clientLayer">
+          <mxGeometry x="0" y="75" width="220" height="40"/>
+        </mxCell>
+        <mxCell id="postman" value="Postman Test Suite (15 cases)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#1a1a3e;fontColor=#ffffff;strokeColor=#fbbf24;" vertex="1" parent="clientLayer">
+          <mxGeometry x="0" y="120" width="220" height="40"/>
+        </mxCell>
+
+        <!-- API Gateway / Auth Layer -->
+        <mxCell id="apiLayer" value="API &amp; Auth Layer" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;rounded=1;fillColor=#080c18;fontColor=#ffffff;strokeColor=#00c896;" vertex="1" parent="1">
+          <mxGeometry x="360" y="70" width="220" height="180"/>
+        </mxCell>
+        <mxCell id="flaskAPI" value="Flask REST API (server.py)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#1a1a3e;fontColor=#ffffff;strokeColor=#00c896;" vertex="1" parent="apiLayer">
+          <mxGeometry x="0" y="30" width="220" height="40"/>
+        </mxCell>
+        <mxCell id="jwtAuth" value="JWT + Google OAuth (auth.py)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#1a1a3e;fontColor=#ffffff;strokeColor=#00c896;" vertex="1" parent="apiLayer">
+          <mxGeometry x="0" y="75" width="220" height="40"/>
+        </mxCell>
+        <mxCell id="vercelGW" value="Vercel Serverless (api/index.py)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#1a1a3e;fontColor=#ffffff;strokeColor=#00c896;" vertex="1" parent="apiLayer">
+          <mxGeometry x="0" y="120" width="220" height="40"/>
+        </mxCell>
+
+        <!-- DSA Engine Layer -->
+        <mxCell id="dsaLayer" value="Core DSA Engine (PDYNO.2)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;rounded=1;fillColor=#080c18;fontColor=#ffffff;strokeColor=#ff4d6a;" vertex="1" parent="1">
+          <mxGeometry x="680" y="70" width="280" height="320"/>
+        </mxCell>
+        <mxCell id="stockHashMap" value="StockHashMap (O(1) lookup)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#2a1a1a;fontColor=#ffffff;strokeColor=#ff4d6a;" vertex="1" parent="dsaLayer">
+          <mxGeometry x="0" y="30" width="280" height="35"/>
+        </mxCell>
+        <mxCell id="ingestionQueue" value="IngestionQueue (O(1) FIFO)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#2a1a1a;fontColor=#ffffff;strokeColor=#ff4d6a;" vertex="1" parent="dsaLayer">
+          <mxGeometry x="0" y="70" width="280" height="35"/>
+        </mxCell>
+        <mxCell id="alertStack" value="AlertStack (O(1) LIFO undo)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#2a1a1a;fontColor=#ffffff;strokeColor=#ff4d6a;" vertex="1" parent="dsaLayer">
+          <mxGeometry x="0" y="110" width="280" height="35"/>
+        </mxCell>
+        <mxCell id="topKHeap" value="TopKHeap (O(log K) ranking)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#2a1a1a;fontColor=#ffffff;strokeColor=#ff4d6a;" vertex="1" parent="dsaLayer">
+          <mxGeometry x="0" y="150" width="280" height="35"/>
+        </mxCell>
+        <mxCell id="sectorGraph" value="SectorGraph (O(V+E) BFS/DFS)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#2a1a1a;fontColor=#ffffff;strokeColor=#ff4d6a;" vertex="1" parent="dsaLayer">
+          <mxGeometry x="0" y="190" width="280" height="35"/>
+        </mxCell>
+        <mxCell id="mergeSort" value="MergeSort (O(n log n))" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#2a1a1a;fontColor=#ffffff;strokeColor=#ff4d6a;" vertex="1" parent="dsaLayer">
+          <mxGeometry x="0" y="230" width="280" height="35"/>
+        </mxCell>
+        <mxCell id="binarySearch" value="BinarySearch (O(log n))" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#2a1a1a;fontColor=#ffffff;strokeColor=#ff4d6a;" vertex="1" parent="dsaLayer">
+          <mxGeometry x="0" y="270" width="280" height="35"/>
+        </mxCell>
+
+        <!-- Connections from Client to API -->
+        <mxCell id="c1" value="HTTP/HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#fbbf24;" edge="1" parent="1" source="reactUI" target="flaskAPI">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="c2" value="HTTP/HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#fbbf24;" edge="1" parent="1" source="postman" target="flaskAPI">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Connection from API to DSA -->
+        <mxCell id="c3" value="import / call" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#00c896;" edge="1" parent="1" source="flaskAPI" target="dsaLayer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Simulator Box -->
+        <mxCell id="simulator" value="Market Simulator (simulator.py)⏱ Real-time price generation (thread)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#1a2a1a;fontColor=#ffffff;strokeColor=#00c896;" vertex="1" parent="1">
+          <mxGeometry x="360" y="280" width="220" height="60"/>
+        </mxCell>
+        <mxCell id="c4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#00c896;" edge="1" parent="1" source="simulator" target="dsaLayer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Data Store Box -->
+        <mxCell id="dataStore" value="⚠ Volatile (in-memory)⏺ No external DB — DSA is the store" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#2a2a1a;fontColor=#ffffff;strokeColor=#ff4d6a;" vertex="1" parent="1">
+          <mxGeometry x="680" y="420" width="280" height="60"/>
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="legend" value="Legend: 🟡 Client Layer  🟢 API Layer  🔴 DSA Engine (Theme C)" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=1;fillColor=#080c18;fontColor=#ffffff;strokeColor=#666666;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="420" width="400" height="60"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

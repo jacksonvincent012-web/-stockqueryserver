@@ -1,6 +1,7 @@
 """Flask REST API for Stock Query Server."""
 
 import os
+import sys
 import time
 import json
 from datetime import datetime, timedelta
@@ -8,14 +9,17 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import subprocess
 
-from engine.stock_map import StockHashMap
-from engine.ingestion_queue import IngestionQueue
-from engine.alert_stack import AlertStack, Alert
-from engine.top_k_heap import TopKHeap
-from engine.sector_graph import SectorGraph
-from engine.merge_sort import merge_sort
-from engine.binary_search import binary_search
-from engine.benchmarks import run_benchmarks
+# Ensure backend/ is on path so 'structures' imports work
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+from structures.stock_map import StockHashMap
+from structures.ingestion_queue import IngestionQueue
+from structures.alert_stack import AlertStack, Alert
+from structures.top_k_heap import TopKHeap
+from structures.sector_graph import SectorGraph
+from structures.merge_sort import merge_sort
+from structures.binary_search import binary_search
+from structures.benchmarks import run_benchmarks
 from simulator import Simulator, StockRecord
 from auth import auth_bp, jwt_required, require_role, optional_auth
 

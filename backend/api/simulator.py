@@ -4,10 +4,10 @@ import random
 import threading
 import time
 from datetime import datetime, timedelta
-from engine.stock_map import StockHashMap, StockRecord
-from engine.ingestion_queue import IngestionQueue, Tick
-from engine.top_k_heap import TopKHeap
-from engine.alert_stack import AlertStack, Alert
+from structures.stock_map import StockHashMap, StockRecord
+from structures.ingestion_queue import IngestionQueue, Tick
+from structures.top_k_heap import TopKHeap
+from structures.alert_stack import AlertStack, Alert
 
 
 SYMBOLS = [

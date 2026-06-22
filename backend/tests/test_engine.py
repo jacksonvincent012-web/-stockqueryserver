@@ -5,13 +5,13 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from engine.stock_map import StockHashMap, StockRecord
-from engine.ingestion_queue import IngestionQueue, Tick
-from engine.alert_stack import AlertStack, Alert
-from engine.top_k_heap import TopKHeap
-from engine.sector_graph import SectorGraph
-from engine.merge_sort import merge_sort
-from engine.binary_search import binary_search
+from structures.stock_map import StockHashMap, StockRecord
+from structures.ingestion_queue import IngestionQueue, Tick
+from structures.alert_stack import AlertStack, Alert
+from structures.top_k_heap import TopKHeap
+from structures.sector_graph import SectorGraph
+from structures.merge_sort import merge_sort
+from structures.binary_search import binary_search
 from datetime import datetime
 
 

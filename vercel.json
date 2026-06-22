@@ -11,7 +11,7 @@
   },
   "rewrites": [
     {
-      "source": "/stock-query-server/api/(.*)",
+      "source": "/api/(.*)",
       "destination": "/api/index.py"
     },
     {
