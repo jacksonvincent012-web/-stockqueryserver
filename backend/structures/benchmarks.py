@@ -1,14 +1,6 @@
 """
 PHASE 2 — DSA Structure 8: Benchmarks
 Rubric requirement: Complexity analysis + benchmark for major operations
-
-WHY BENCHMARKS?
-  The project requires empirical verification of Big-O claims.
-  This module times every DSA operation at N = 1K, 10K, and 100K
-  and returns a timing matrix displayed in the admin UI.
-
-  Timing is done with time.perf_counter() for nanosecond precision
-  and repeated (REPETITIONS = 5) to smooth out noise.
 """
 
 import os
@@ -30,7 +22,7 @@ from structures.merge_sort import merge_sort
 from structures.binary_search import binary_search, range_search
 from structures.lru_cache import LRUCache
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 REPETITIONS = 5
 SIZES = [1_000, 10_000, 100_000]
@@ -48,19 +40,20 @@ def _timed(name: str, fn, *args, **kwargs) -> float:
 
 
 # ------------------------------------------------------------------ #
-# Per-structure benchmark suites                                      #
+# Per-structure benchmark suites                                     #
 # ------------------------------------------------------------------ #
 
 def _bench_hashmap(n: int) -> dict:
     """Benchmark StockHashMap.put and .get at size n."""
     hm = StockHashMap()
-    # PUT — insert n records
-    t_put = _timed("put", hm.put, "SYM0", StockRecord("SYM0", 100.0, 1000, "TECH"))
+    # Seed map to size n before isolating single-unit operations
     for i in range(n):
         sym = f"SYM{i}"
         hm.put(sym, StockRecord(sym, random.uniform(10, 500), random.randint(100, 1_000_000), "TECH"))
 
-    # GET — retrieve a random existing key
+    # Isolate individual execution costs
+    t_put = _timed("put", hm.put, "NEW_SYM", StockRecord("NEW_SYM", 100.0, 1000, "TECH"))
+    
     target = f"SYM{random.randint(0, n-1)}"
     t_get = _timed("get", hm.get, target)
 
@@ -72,15 +65,16 @@ def _bench_queue(n: int) -> dict:
     q = IngestionQueue()
     ticks = [Tick(f"SYM{i}", 100.0, 1000, datetime.now()) for i in range(n)]
 
-    t_enq = _timed("enqueue batch", lambda: [q.enqueue(t) for t in ticks])
-
-    t_deq = _timed("dequeue all", lambda: [q.dequeue() for _ in range(n)])
+    # Normalize batch time by dividing by n
+    t_enq = _timed("enqueue batch", lambda: [q.enqueue(t) for t in ticks]) / n
+    t_deq = _timed("dequeue all", lambda: [q.dequeue() for _ in range(n)]) / n
 
     return {"Queue.enqueue": t_enq, "Queue.dequeue": t_deq}
 
 
 def _bench_stack(n: int) -> dict:
-    """Benchmark AlertStack.push and .pop at size n (capped at 500 per run)."""
+    """Benchmark AlertStack.push and .pop (Normalized per-op cost)."""
+    # Safe cap due to internal structural constraints (MAX_SIZE = 1,000)
     count = min(n, 500)
 
     def _do_push():
@@ -95,21 +89,21 @@ def _bench_stack(n: int) -> dict:
         for _ in range(count):
             s.pop()
 
-    t_push = _timed("push", _do_push)
-    t_pop = _timed("pop", _do_pop)
+    t_push = _timed("push", _do_push) / count
+    t_pop = _timed("pop", _do_pop) / count
     return {"Stack.push": t_push, "Stack.pop": t_pop}
 
 
 def _bench_heap(n: int) -> dict:
     """Benchmark TopKHeap.push at size n with K=10."""
     h = TopKHeap(k=10)
-    t_push = _timed("push batch", lambda: [h.push(f"SYM{i}", random.random() * 1000) for i in range(n)])
-    t_top = _timed("top_k", h.top_k)
+    t_push = _timed("push batch", lambda: [h.push(f"SYM{i}", random.random() * 1000) for i in range(n)]) / n
+    t_top = _timed("top_k", h.top_k) # Keeps absolute layout cost
     return {"Heap.push": t_push, "Heap.top_k": t_top}
 
 
 def _bench_graph(n: int) -> dict:
-    """Benchmark SectorGraph BFS/DFS with n nodes ~2n edges."""
+    """Benchmark SectorGraph BFS/DFS with n nodes."""
     import sys
     sys.setrecursionlimit(max(sys.getrecursionlimit(), min(n, 2000) + 100))
     g = SectorGraph()
@@ -121,7 +115,6 @@ def _bench_graph(n: int) -> dict:
             g.add_edge(f"S{i}", f"S{i+2}")
 
     t_bfs = _timed("BFS", g.bfs, "S0")
-    # DFS with iterative stack for large n to avoid recursion limit
     if n <= 2000:
         t_dfs = _timed("DFS", g.dfs, "S0")
     else:
@@ -130,14 +123,14 @@ def _bench_graph(n: int) -> dict:
 
 
 def _bench_sort(n: int) -> dict:
-    """Benchmark MergeSort at size n."""
+    """Benchmark MergeSort total collection computation at size n."""
     data = [random.random() * 1000 for _ in range(n)]
     t_sort = _timed("merge_sort", merge_sort, data)
     return {"MergeSort.sort": t_sort}
 
 
 def _bench_search(n: int) -> dict:
-    """Benchmark BinarySearch at size n."""
+    """Benchmark BinarySearch single range lookups at size n."""
     data = sorted([random.random() * 1000 for _ in range(n)])
     target = data[n // 2]
     t_search = _timed("binary_search", binary_search, data, target)
@@ -146,36 +139,23 @@ def _bench_search(n: int) -> dict:
 
 
 def _bench_lru_cache(n: int) -> dict:
-    """Benchmark LRUCache.get and .put at size n (capacity = n)."""
+    """Benchmark LRUCache normalized single element resolution runtime."""
     c = LRUCache(capacity=n)
-    # PUT n entries
-    t_put = _timed("put batch", lambda: [c.put(f"K{i}", f"V{i}") for i in range(n)])
+    t_put = _timed("put batch", lambda: [c.put(f"K{i}", f"V{i}") for i in range(n)]) / n
 
-    # GET n entries (all hits after first)
     for i in range(n):
         c.put(f"K{i}", f"V{i}")
-    t_get_hit = _timed("get (hit)", lambda: [c.get(f"K{i}") for i in range(n)])
-
-    # GET n entries (all misses)
-    t_get_miss = _timed("get (miss)", lambda: [c.get(f"NOT{i}") for i in range(n)])
+    t_get_hit = _timed("get (hit)", lambda: [c.get(f"K{i}") for i in range(n)]) / n
+    t_get_miss = _timed("get (miss)", lambda: [c.get(f"NOT{i}") for i in range(n)]) / n
 
     return {"LRUCache.put": t_put, "LRUCache.get_hit": t_get_hit, "LRUCache.get_miss": t_get_miss}
 
 
 # ------------------------------------------------------------------ #
-# Public entry point                                                  #
+# Public entry point                                                 #
 # ------------------------------------------------------------------ #
 
 def run_all_benchmarks() -> dict:
-    """
-    Run all benchmarks at all sizes.
-    Returns a dict:
-        {
-            "HashMap.put":  {"1K": ..., "10K": ..., "100K": ...},
-            "HashMap.get":  {"1K": ..., "10K": ..., "100K": ...},
-            ...
-        }
-    """
     results: dict[str, dict[str, float]] = {}
 
     for size in SIZES:

@@ -7,7 +7,7 @@
 WHY A GRAPH HERE?
   Stock sectors don't operate in isolation — TECH performance
   often leads FINANCE which leads ENERGY, creating a chain of
-  correlated movements.  We model these relationships as a
+  correlated movements. We model these relationships as a
   DIRECTED GRAPH where an edge A→B means "sector A influences
   sector B".
 
@@ -29,27 +29,36 @@ HOW IT WORKS — ADJACENCY LIST:
     ...
   }
 
-  Adjacency list chosen over adjacency matrix because:
-    • Our graph is SPARSE (50 nodes, ~200 edges max)
-    • Adjacency list: O(V + E) space
-    • Adjacency matrix: O(V²) space → 50² = 2,500 cells for 200 edges
+DESIGN CONSIDERATIONS & EDGE CASES:
+  1. Memory Footprint Efficiency (Sparse Topology):
+     With ~50 real-world sector classifications and a sparse distribution of 
+     inter-industry relationships (~200 edges max), an adjacency matrix would 
+     waste massive chunks of space keeping track of empty cells at O(V²). 
+     Utilizing an adjacency list optimizes the storage profile down to O(V + E).
 
-BFS (Breadth-First Search):
-  Uses a deque as the frontier queue — deque.popleft() is O(1).
-  Visits nodes level by level (nearest sectors first).
-  Time: O(V + E).
+  2. Infinite Traversal Loop Prevention (Cycles):
+     Market sectors can exhibit cyclical feedback loops (e.g., TECH influences 
+     FINANCE, which influences RETAIL, which loops back to influence TECH). Both 
+     the BFS and DFS engines deploy an atomic hashing set ('visited') to intercept 
+     re-entrant paths and avoid infinite iteration loops.
 
-DFS (Depth-First Search):
-  Uses Python's call stack (recursive).
-  Explores one full path before backtracking.
-  Time: O(V + E).
+  3. Call Stack Overflow Defenses:
+     Deeply nested macro-economic chains can stress Python's built-in recursion 
+     limits. The inclusion of an explicit, array-backed 'dfs_iterative' routine 
+     bypasses the execution runtime stack entirely, ensuring stable memory footprints.
 
-COMPLEXITY (Step 2 — Constraints):
-  add_node   O(1)
-  add_edge   O(1)
-  bfs        O(V + E)
-  dfs        O(V + E)
-  adjacency  O(1)  — returns the dict reference
+  4. Defending Against Encapsulation Leaks:
+     The get_adjacency_list() helper generates deep diagnostic copies of internal 
+     pointer vectors. This prevents client endpoints from accidentally mutating 
+     the core graph structure.
+
+COMPLEXITY:
+  add_node(node)               O(1) Time | O(1) Space
+  add_edge(from_node, to_node) O(deg) Time check | O(1) Space
+  remove_edge(from_node, to)   O(deg) Time search and slice extraction
+  bfs(start)                   O(V + E) Time | O(V) Space
+  dfs(start)                   O(V + E) Time | O(V) Space 
+  get_adjacency_list()         O(V + E) Time | O(V + E) Space (Defensive Copy)
 """
 
 from collections import deque
@@ -68,7 +77,7 @@ class SectorGraph:
         self._adj: dict[str, list[str]] = {}
 
     # -------------------------------------------------------------- #
-    # Build the graph                                                  #
+    # Build the graph                                                #
     # -------------------------------------------------------------- #
 
     def add_node(self, node: str) -> None:
@@ -84,7 +93,7 @@ class SectorGraph:
         Add a directed edge from_node → to_node.
         Auto-creates either node if missing.
         Prevents duplicate edges.
-        O(1) amortised.
+        O(deg) checking overhead to maintain uniqueness.
         """
         self.add_node(from_node)
         self.add_node(to_node)
@@ -103,7 +112,7 @@ class SectorGraph:
         return False
 
     # -------------------------------------------------------------- #
-    # Traversal — BFS                                                  #
+    # Traversal — BFS                                                #
     # -------------------------------------------------------------- #
 
     def bfs(self, start: str) -> list[str]:
@@ -111,14 +120,6 @@ class SectorGraph:
         Breadth-First Search from start node.
         Returns sectors in order of increasing distance from start.
         Returns [] if start not in graph.
-
-        Algorithm:
-          1. Enqueue start; mark visited.
-          2. While frontier not empty:
-               dequeue node n  (O(1) — deque.popleft)
-               append n to result
-               for each unvisited neighbour: enqueue + mark visited
-          3. Return result.
 
         Time:  O(V + E)
         Space: O(V)
@@ -142,7 +143,7 @@ class SectorGraph:
         return result
 
     # -------------------------------------------------------------- #
-    # Traversal — DFS                                                  #
+    # Traversal — DFS                                                #
     # -------------------------------------------------------------- #
 
     def dfs(self, start: str) -> list[str]:
@@ -151,14 +152,8 @@ class SectorGraph:
         Returns all reachable sectors in DFS visit order.
         Returns [] if start not in graph.
 
-        Algorithm (recursive):
-          _dfs_visit(node):
-            mark node visited
-            append to result
-            for each unvisited neighbour: recurse
-
         Time:  O(V + E)
-        Space: O(V)  — call stack depth = longest path
+        Space: O(V) — call stack depth = longest path
         """
         if start not in self._adj:
             return []
@@ -179,7 +174,7 @@ class SectorGraph:
     def dfs_iterative(self, start: str) -> list[str]:
         """
         Iterative DFS using an explicit stack (list) to avoid Python's
-        recursion limit on very large graphs (n > 1,000).
+        recursion limit on large or deeply cyclic dependency paths.
 
         Time:  O(V + E)
         Space: O(V)
@@ -196,19 +191,20 @@ class SectorGraph:
             if node not in visited:
                 visited.add(node)
                 result.append(node)
+                # Reverse to preserve symmetry with the recursive traversal pattern
                 for neighbour in reversed(self._adj[node]):
                     if neighbour not in visited:
                         stack.append(neighbour)
         return result
 
     # -------------------------------------------------------------- #
-    # Inspection                                                       #
+    # Inspection                                                     #
     # -------------------------------------------------------------- #
 
     def get_adjacency_list(self) -> dict[str, list[str]]:
         """
-        Return a copy of the full adjacency list.
-        O(V + E) — copies every node and edge list.
+        Return a deep copy of the full adjacency list to preserve insulation.
+        O(V + E) — copies every node key and underlying edge array.
         """
         return {node: list(neighbours)
                 for node, neighbours in self._adj.items()}
@@ -226,5 +222,5 @@ class SectorGraph:
         return len(self._adj)
 
     def edge_count(self) -> int:
-        """Total number of directed edges. O(V)."""
+        """Total number of directed edges mapped in the matrix. O(V)."""
         return sum(len(nbrs) for nbrs in self._adj.values())

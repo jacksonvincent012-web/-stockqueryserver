@@ -18,7 +18,7 @@ import jwt
 from flask import request, jsonify, g
 
 # ------------------------------------------------------------------ #
-# Configuration                                                       #
+# Configuration                                                      #
 # ------------------------------------------------------------------ #
 
 SECRET_KEY = os.environ.get("JWT_SECRET", "dsa-ch23-stock-query-secret-dev")
@@ -31,9 +31,13 @@ REFRESH_EXPIRY = 7 * 86400    # 7 days
 
 _users: dict[str, dict] = {}   # email -> { password_hash, role, refresh_tokens, ... }
 
-# Seed demo accounts
-def _hash_pw(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
+def _hash_pw(password: str, email: str) -> str:
+    """
+    Upgraded: Standard SHA-256 with an email-based salt.
+    Prevents identical passwords from creating identical hashes across users.
+    """
+    salted_input = f"{password}{email}{SECRET_KEY}"
+    return hashlib.sha256(salted_input.encode()).hexdigest()
 
 def _seed_users():
     users = [
@@ -42,16 +46,18 @@ def _seed_users():
         ("viewer@stockquery.io",  "viewer123",  "viewer"),
     ]
     for email, pw, role in users:
-        _users[email] = {
-            "email": email,
-            "password_hash": _hash_pw(pw),
+        normalized_email = email.strip().lower()
+        _users[normalized_email] = {
+            "email": normalized_email,
+            "password_hash": _hash_pw(pw, normalized_email),
             "role": role,
             "refresh_tokens": [],
         }
+
 _seed_users()
 
 # ------------------------------------------------------------------ #
-# JWT helpers                                                         #
+# JWT helpers                                                        #
 # ------------------------------------------------------------------ #
 
 def _make_token(email: str, role: str, expiry: int) -> str:
@@ -70,8 +76,17 @@ def _decode_token(token: str) -> dict | None:
     except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
         return None
 
+def _clean_expired_refresh_tokens(user: dict):
+    """
+    Upgraded: Memory optimization cleanup task.
+    Filters out and removes dead/expired refresh tokens to avoid an in-memory leak.
+    """
+    user["refresh_tokens"] = [
+        t for t in user["refresh_tokens"] if _decode_token(t) is not None
+    ]
+
 # ------------------------------------------------------------------ #
-# Flask decorators                                                    #
+# Flask decorators                                                   #
 # ------------------------------------------------------------------ #
 
 def require_auth(f):
@@ -81,10 +96,12 @@ def require_auth(f):
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):
             return jsonify({"error": "Missing or invalid Authorization header"}), 401
+        
         token = auth_header[7:]
         payload = _decode_token(token)
         if payload is None:
             return jsonify({"error": "Invalid or expired token"}), 401
+            
         g.user = payload
         return f(*args, **kwargs)
     return wrapper
@@ -94,6 +111,10 @@ def require_role(*roles: str):
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
+            # Defensive check: prevents app failure if decorators are stacked in the wrong order
+            if not hasattr(g, "user") or g.user is None:
+                return jsonify({"error": "Authentication context missing"}), 401
+                
             if g.user.get("role") not in roles:
                 return jsonify({"error": "Insufficient permissions"}), 403
             return f(*args, **kwargs)
@@ -131,7 +152,7 @@ def handle_register(data: dict) -> tuple:
 
     _users[email] = {
         "email": email,
-        "password_hash": _hash_pw(password),
+        "password_hash": _hash_pw(password, email),
         "role": role,
         "refresh_tokens": [],
     }
@@ -143,8 +164,11 @@ def handle_login(data: dict) -> tuple:
     password = data.get("password", "")
 
     user = _users.get(email)
-    if not user or user["password_hash"] != _hash_pw(password):
+    if not user or user["password_hash"] != _hash_pw(password, email):
         return {"error": "Invalid email or password"}, 401
+
+    # Housekeeping: purge dead tokens before tracking a new one
+    _clean_expired_refresh_tokens(user)
 
     access_token = _make_token(email, user["role"], ACCESS_EXPIRY)
     refresh_token = _make_token(email, user["role"], REFRESH_EXPIRY)
@@ -166,7 +190,10 @@ def handle_refresh(data: dict) -> tuple:
         if refresh_token in user["refresh_tokens"]:
             payload = _decode_token(refresh_token)
             if payload is None:
+                # Cleanup if expired token was verified dead
+                _clean_expired_refresh_tokens(user)
                 return {"error": "Refresh token expired"}, 401
+                
             # Issue new access token
             access_token = _make_token(email, user["role"], ACCESS_EXPIRY)
             return {"access_token": access_token}, 200
@@ -174,8 +201,9 @@ def handle_refresh(data: dict) -> tuple:
     return {"error": "Invalid refresh token"}, 401
 
 
-def handle_me() -> dict:
-    if not g.user:
+def handle_me() -> tuple:
+    """Fixed signature: Changed type hint mapping from dict to tuple"""
+    if not hasattr(g, "user") or not g.user:
         return {"error": "Not authenticated"}, 401
     return {
         "email": g.user["email"],
@@ -188,7 +216,9 @@ def handle_logout(data: dict) -> tuple:
     for user in _users.values():
         if refresh_token in user["refresh_tokens"]:
             user["refresh_tokens"].remove(refresh_token)
+            _clean_expired_refresh_tokens(user)
             return {"message": "Logged out"}, 200
+            
     return {"error": "Invalid refresh token"}, 401
 
 

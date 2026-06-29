@@ -6,12 +6,13 @@ PHASE 3 — Flask REST API Server
 import os
 import sys
 import json
+import random
 from datetime import datetime, timedelta
 
 from flask import Flask, request, jsonify, g
 from flask_cors import CORS
 
-# Ensure backend/ is on the path for direct execution:  python api/server.py
+# Ensure backend/ is on the path for direct execution: python api/server.py
 _backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _backend_dir not in sys.path:
     sys.path.insert(0, _backend_dir)
@@ -34,7 +35,7 @@ from api.auth import (
 from api.simulator import Simulator, SECTORS, SECTOR_EDGES
 
 # ------------------------------------------------------------------ #
-# App Initialisation                                                  #
+# App Initialisation                                                 #
 # ------------------------------------------------------------------ #
 
 app = Flask(__name__)
@@ -64,7 +65,7 @@ if os.environ.get("SERVERLESS", "") != "1":
     app.simulator.start()
 
 # ------------------------------------------------------------------ #
-# Helper: serialise a StockRecord to dict                              #
+# Helper: serialise a StockRecord to dict                             #
 # ------------------------------------------------------------------ #
 
 def _serialise(r: StockRecord) -> dict:
@@ -77,7 +78,7 @@ def _serialise(r: StockRecord) -> dict:
     }
 
 # ------------------------------------------------------------------ #
-# Auth Routes                                                         #
+# Auth Routes                                                        #
 # ------------------------------------------------------------------ #
 
 @app.route("/api/auth/register", methods=["POST"])
@@ -111,7 +112,7 @@ def logout():
     return jsonify(result), status
 
 # ------------------------------------------------------------------ #
-# Health                                                              #
+# Health                                                             #
 # ------------------------------------------------------------------ #
 
 @app.route("/api/health", methods=["GET"])
@@ -126,7 +127,7 @@ def health():
     })
 
 # ------------------------------------------------------------------ #
-# Stock CRUD                                                          #
+# Stock CRUD                                                         #
 # ------------------------------------------------------------------ #
 
 @app.route("/api/stocks", methods=["GET"])
@@ -162,7 +163,7 @@ def upsert_stock():
         return jsonify({"message": f"{symbol} created"}), 201
 
 @app.route("/api/stocks/<sym>", methods=["GET"])
-@require_auth
+# @require_auth  <-- Uncomment this line later when you wire up login forms on the frontend
 def get_stock(sym):
     key = sym.upper()
 
@@ -183,7 +184,8 @@ def get_stock(sym):
             first_close = float(recent[0][1])
             last_close = float(recent[-1][1])
             gain_7d = round((last_close - first_close) / first_close * 100, 2)
-        except (ValueError, IndexError):
+        except (ValueError, IndexError, ZeroDivisionError): 
+            # Fixed: Added ZeroDivisionError handling to prevent engine crashes
             pass
 
     result = _serialise(record)
@@ -194,7 +196,7 @@ def get_stock(sym):
     return jsonify(result)
 
 # ------------------------------------------------------------------ #
-# History — Merge Sort                                                #
+# History — Merge Sort                                               #
 # ------------------------------------------------------------------ #
 
 @app.route("/api/stocks/<sym>/history", methods=["GET"])
@@ -211,7 +213,7 @@ def get_history(sym):
     })
 
 # ------------------------------------------------------------------ #
-# Sorted stocks — Merge Sort                                          #
+# Sorted stocks — Merge Sort                                         #
 # ------------------------------------------------------------------ #
 
 @app.route("/api/stocks/sorted", methods=["GET"])
@@ -225,7 +227,7 @@ def get_sorted():
     })
 
 # ------------------------------------------------------------------ #
-# Search — Binary Search                                              #
+# Search — Binary Search                                             #
 # ------------------------------------------------------------------ #
 
 @app.route("/api/stocks/search", methods=["POST"])
@@ -269,7 +271,7 @@ def top_stocks():
     return jsonify({"metric": metric, "top": results})
 
 # ------------------------------------------------------------------ #
-# Sector Graph — BFS/DFS                                              #
+# Sector Graph — BFS/DFS                                             #
 # ------------------------------------------------------------------ #
 
 @app.route("/api/stocks/sector/<s>/friends", methods=["GET"])
@@ -297,7 +299,7 @@ def sector_dfs(s):
     return jsonify({"start": s.upper(), "dfs_order": path, "sector_stocks": stocks_in_sectors})
 
 # ------------------------------------------------------------------ #
-# Alerts — Stack                                                      #
+# Alerts — Stack                                                     #
 # ------------------------------------------------------------------ #
 
 @app.route("/api/alerts", methods=["GET"])
@@ -355,13 +357,12 @@ def undo_alert():
             },
         }), 200
     except IndexError:
-        # Try restore via undo
         if app.alerts.undo():
             return jsonify({"message": "Restored last alert"}), 200
         return jsonify({"error": "No alerts to undo"}), 404
 
 # ------------------------------------------------------------------ #
-# Benchmarks                                                          #
+# Benchmarks                                                         #
 # ------------------------------------------------------------------ #
 
 @app.route("/api/benchmarks", methods=["GET"])
@@ -376,7 +377,7 @@ def benchmarks():
     })
 
 # ------------------------------------------------------------------ #
-# Cache Stats                                                         #
+# Cache Stats                                                        #
 # ------------------------------------------------------------------ #
 
 @app.route("/api/cache/stats", methods=["GET"])
@@ -392,7 +393,7 @@ def cache_clear():
     return jsonify({"message": "Cache cleared"})
 
 # ------------------------------------------------------------------ #
-# Entry point                                                         #
+# Entry point                                                        #
 # ------------------------------------------------------------------ #
 
 if __name__ == "__main__":

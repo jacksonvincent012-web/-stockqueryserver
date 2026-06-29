@@ -1,10 +1,12 @@
 """
-PHASE 2 — DSA Structure 6: MergeSort
-Rubric requirement: Sorting (at least one O(n log n) sort)
+=============================================================
+ PHASE 2 — DSA Structure 6: MergeSort
+ Rubric requirement: Sorting (at least one O(n log n) sort)
+=============================================================
 
 WHY MERGE SORT HERE?
   The `/stocks/<sym>/history` endpoint returns a stock's 90-day
-  price history sorted by date.  Merge Sort is:
+  price history sorted by date. Merge Sort is:
     • Stable  — preserves chronological order for equal dates
     • O(n log n) worst-case  — no adversarial input degrades it
     • O(n) space  — acceptable for n ≤ 100,000 price ticks
@@ -14,8 +16,27 @@ WHY MERGE SORT HERE?
   Sort explicitly satisfies the rubric requirement and demonstrates
   understanding of the divide-and-conquer paradigm.
 
+DESIGN CONSIDERATIONS & EDGE CASES:
+  1. Chronological Stability Maintenance:
+     In time-series financial analysis, breaking the relative order of trades 
+     executed at identical price points corrupts the historical timeline. Using 
+     a protective lower-or-equal comparison operator (<=) inside the merge phase 
+     guarantees strict stability retention.
+     
+  2. Recursive Stack Footprint & Memory Trades:
+     Top-down partitioning allocates array slices on each recursive split. While 
+     this introduces an temporary auxiliary space footprint of O(n), it remains highly 
+     performant and memory-safe for your production data horizon of n <= 100,000.
+
+  3. Polymorphic Evaluation Support:
+     The historical record stream balances complex data layouts. Injecting a 
+     functional 'key' companion function allows this module to sort symmetrically 
+     by raw price scales, isolated timestamps, or custom object records without 
+     mutating the underlying data structures.
+
 COMPLEXITY:
-  sort(list)  O(n log n) time, O(n) space
+  merge_sort(arr)   $O(n \log n)$ Worst, Best, and Average Time | $O(n)$ Auxiliary Space
+  _merge(left, right)  $O(n)$ Linear Time | $O(n)$ Temporary Output Space
 """
 
 
@@ -26,7 +47,7 @@ def merge_sort(arr: list, key=None) -> list:
     Parameters
     ----------
     arr : list
-        The list to sort.  May contain any comparable elements.
+        The list to sort. May contain any comparable elements.
     key : callable, optional
         A function of one argument used to extract a comparison key
         from each element (like sorted(..., key=...)).
@@ -35,11 +56,7 @@ def merge_sort(arr: list, key=None) -> list:
     -------
     list
         A new list sorted in ascending order.
-
-    Time:  O(n log n)  —  2T(n/2) + O(n)  →  Θ(n log n)
-    Space: O(n)        —  auxiliary arrays during merge phase
     """
-
     if key is None:
         key = lambda x: x
 
