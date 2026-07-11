@@ -1,0 +1,365 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--token-scrollbar-thumb, #334155);
+    border-radius: 20px;
+  }
+}
+
+/* ==========================================================================
+   UNIFIED INSTITUTIONAL DESIGN SYSTEM TOKENS
+   Shared Theme Architecture for Light & Dark Modes (Single Shared Layout)
+   ========================================================================== */
+
+:root,
+.theme-dark {
+  /* Dark Theme Tokens (Midnight Slate) - Requirement 10 */
+  --token-bg: #0F172A;
+  --token-card: #1E293B;
+  --token-surface: #1E293B;
+  --token-border: #334155;
+  --token-primary: #3B82F6;
+  --token-success: #22C55E;
+  --token-warning: #FBBF24;
+  --token-danger: #F87171;
+  --token-text-primary: #F8FAFC;
+  --token-text-secondary: #94A3B8;
+  --token-text-muted: #64748B;
+
+  --token-input-bg: #0F172A;
+  --token-subtle-bg: rgba(30, 41, 59, 0.85);
+  --token-hover-bg: rgba(59, 130, 246, 0.15);
+  --token-card-hover: rgba(51, 65, 85, 0.5);
+  --token-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.45), 0 2px 6px -2px rgba(0, 0, 0, 0.35);
+  --token-scrollbar-thumb: #334155;
+}
+
+.theme-light {
+  /* Light Theme Tokens (Institutional White / Pure White Theme) */
+  --token-bg: #FFFFFF;
+  --token-card: #FFFFFF;
+  --token-surface: #FFFFFF;
+  --token-border: #E2E8F0;
+  --token-primary: #2563EB;
+  --token-success: #16A34A;
+  --token-warning: #D97706;
+  --token-danger: #DC2626;
+  --token-text-primary: #000000;
+  --token-text-secondary: #334155;
+  --token-text-muted: #64748B;
+
+  --token-input-bg: #FFFFFF;
+  --token-subtle-bg: #F8FAFC;
+  --token-hover-bg: #3B82F6;
+  --token-card-hover: #F1F5F9;
+  --token-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.08), 0 2px 6px -2px rgba(0, 0, 0, 0.04);
+  --token-scrollbar-thumb: #cbd5e1;
+}
+
+/* ==========================================================================
+   THEME TOKEN MAPPINGS FOR SINGLE SHARED LAYOUT
+   Maps existing layout classes cleanly to Design Tokens across both themes.
+   Zero component duplication, zero layout shifts, identical typography.
+   ========================================================================== */
+
+/* 1. Canvas & Background Mapping */
+body,
+#root,
+.bg-\[\#080a0e\],
+.bg-\[\#0A0E17\],
+.bg-\[\#0b0f19\],
+.bg-\[\#0b0f19\]\/90,
+.bg-slate-950,
+[class*="bg-[#080a0e]"],
+[class*="bg-[#0A0E17]"],
+[class*="bg-[#0b0f19]"],
+[class*="bg-slate-950"] {
+  background-color: var(--token-bg) !important;
+  color: var(--token-text-primary) !important;
+}
+
+/* 2. Card & Surface Mapping */
+.bg-\[\#0b0e14\],
+.bg-\[\#131b2e\],
+.bg-\[\#0f172a\],
+.bg-slate-900,
+.bg-slate-950\/80,
+.bg-slate-950\/60,
+[class*="bg-[#0b0e14]"],
+[class*="bg-[#131b2e]"],
+[class*="bg-[#0f172a]"],
+[class*="bg-slate-900"] {
+  background-color: var(--token-card) !important;
+  color: var(--token-text-primary) !important;
+  box-shadow: var(--token-shadow) !important;
+}
+
+/* 3. Sub-card, Input Box & Inner Widget Mapping */
+.bg-\[\#0b0f19\]\/50,
+.bg-\[\#0b0f19\]\/60,
+.bg-\[\#0b0f19\]\/80,
+.bg-slate-900\/80,
+.bg-slate-900\/60,
+.bg-slate-900\/40,
+.bg-slate-800,
+.bg-slate-800\/80,
+.bg-slate-800\/60,
+.bg-slate-800\/50,
+.bg-slate-700,
+[class*="bg-[#0b0f19]/"],
+[class*="bg-slate-900/"],
+[class*="bg-slate-800/"],
+[class*="bg-slate-800"] {
+  background-color: var(--token-subtle-bg) !important;
+  color: var(--token-text-primary) !important;
+}
+
+/* 4. Border Mapping */
+.border-slate-800,
+.border-slate-800\/80,
+.border-slate-800\/60,
+.border-slate-700,
+.border-slate-700\/80,
+.border-slate-600,
+.border-slate-900,
+[class*="border-slate-800"],
+[class*="border-slate-700"],
+[class*="border-slate-600"],
+[class*="border-slate-900"] {
+  border-color: var(--token-border) !important;
+}
+
+/* 5. Typography Color Mapping */
+/* Primary Text Token */
+.text-slate-100,
+.text-slate-200,
+.text-white,
+[class*="text-slate-100"],
+[class*="text-slate-200"],
+[class*="text-white"] {
+  color: var(--token-text-primary) !important;
+}
+
+/* Secondary Text Token */
+.text-slate-300,
+.text-slate-400,
+[class*="text-slate-300"],
+[class*="text-slate-400"] {
+  color: var(--token-text-secondary) !important;
+}
+
+/* Muted Text Token */
+.text-slate-500,
+[class*="text-slate-500"] {
+  color: var(--token-text-muted) !important;
+}
+
+/* 6. Active Buttons, Badges, Gradients & Brand Elements Retain Crisp White Text */
+.bg-blue-600,
+.bg-blue-500,
+.bg-emerald-600,
+.bg-emerald-500,
+.bg-purple-600,
+.bg-purple-500,
+.bg-rose-600,
+.bg-rose-500,
+.bg-amber-600,
+.bg-amber-500,
+.bg-indigo-600,
+.bg-indigo-500,
+.bg-cyan-600,
+.bg-cyan-500,
+.bg-teal-600,
+.bg-teal-500,
+[class*="bg-blue-600"],
+[class*="bg-blue-500"],
+[class*="bg-emerald-600"],
+[class*="bg-emerald-500"],
+[class*="bg-purple-600"],
+[class*="bg-indigo-600"],
+[class*="bg-cyan-600"],
+[class*="bg-teal-600"],
+[class*="from-blue-"],
+[class*="from-emerald-"],
+[class*="from-purple-"],
+[class*="from-rose-"],
+[class*="from-amber-"],
+[class*="from-indigo-"],
+[class*="from-cyan-"],
+[class*="from-teal-"] {
+  color: #ffffff !important;
+}
+
+.bg-blue-600 .text-white,
+.bg-blue-500 .text-white,
+.bg-emerald-600 .text-white,
+.bg-emerald-500 .text-white,
+.bg-purple-600 .text-white,
+.bg-indigo-600 .text-white,
+[class*="bg-blue-600"] .text-white,
+[class*="bg-blue-500"] .text-white,
+[class*="bg-emerald-600"] .text-white,
+[class*="bg-emerald-500"] .text-white,
+[class*="bg-purple-600"] .text-white,
+[class*="bg-indigo-600"] .text-white,
+[class*="from-blue-"] .text-white,
+[class*="from-emerald-"] .text-white,
+[class*="from-purple-"] .text-white,
+[class*="from-rose-"] .text-white,
+[class*="from-amber-"] .text-white,
+[class*="from-indigo-"] .text-white,
+[class*="from-cyan-"] .text-white,
+[class*="from-teal-"] .text-white,
+[class*="bg-blue-600"] [class*="text-white"],
+[class*="bg-blue-500"] [class*="text-white"],
+[class*="from-blue-"] [class*="text-white"],
+[class*="from-emerald-"] [class*="text-white"],
+[class*="from-cyan-"] [class*="text-white"],
+[class*="from-teal-"] [class*="text-white"] {
+  color: #ffffff !important;
+}
+
+/* Primary buttons follow the Primary token */
+.bg-blue-600,
+.bg-blue-500,
+[class*="bg-blue-600"]:not([class*="from-"]):not([class*="to-"]):not([class*="/"]),
+[class*="bg-blue-500"]:not([class*="from-"]):not([class*="to-"]):not([class*="/"]) {
+  background-color: var(--token-primary) !important;
+  color: #ffffff !important;
+}
+
+/* 7. Semantic Color Mapping (Primary, Success, Warning, Danger Tokens) */
+.text-blue-400,
+.text-blue-300,
+.text-blue-500,
+[class*="text-blue-400"],
+[class*="text-blue-300"],
+[class*="text-blue-500"] {
+  color: var(--token-primary) !important;
+}
+
+.border-blue-500,
+.border-blue-400,
+[class*="border-blue-500"],
+[class*="border-blue-400"] {
+  border-color: var(--token-primary) !important;
+}
+
+.text-amber-400,
+.text-amber-300,
+[class*="text-amber-400"],
+[class*="text-amber-300"] {
+  color: var(--token-warning) !important;
+}
+
+.text-rose-400,
+.text-rose-300,
+.text-rose-500,
+.text-red-400,
+.text-red-500,
+[class*="text-rose-400"],
+[class*="text-rose-300"],
+[class*="text-rose-500"],
+[class*="text-red-400"],
+[class*="text-red-500"] {
+  color: var(--token-danger) !important;
+}
+
+.text-emerald-400,
+.text-emerald-300,
+.text-green-400,
+.text-green-500,
+[class*="text-emerald-400"],
+[class*="text-emerald-300"],
+[class*="text-green-400"],
+[class*="text-green-500"] {
+  color: var(--token-success) !important;
+}
+
+/* 8. Interactive Hover Styling (Strictly No Purple Override!) */
+[class*="hover:bg-slate-"]:not([class*="bg-blue-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):hover,
+[class*="hover:bg-[#0b0f19]"]:not([class*="bg-blue-"]):hover {
+  background-color: var(--token-hover-bg) !important;
+  border-color: var(--token-border) !important;
+  color: var(--token-text-primary) !important;
+}
+
+/* 9. Institutional 250ms Smooth Color Transition (Requirement 11) */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow !important;
+  transition-duration: 250ms !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* ==========================================================================
+   10. WHITE THEME SPECIFIC OVERRIDES (Analyst Dashboard & Admin Console)
+   Requirement: White background, black text, bluish tab labelling with white text on hover.
+   ========================================================================== */
+.theme-light body,
+.theme-light #root {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+}
+
+.theme-light [class*="text-slate-100"],
+.theme-light [class*="text-slate-200"],
+.theme-light [class*="text-slate-300"],
+.theme-light [class*="text-white"]:not([class*="bg-blue-"]):not([class*="bg-emerald-"]):not([class*="bg-purple-"]):not([class*="bg-amber-"]):not([class*="bg-indigo-"]):not([class*="bg-gradient-"]) {
+  color: #000000 !important;
+}
+
+/* Tabs & Section Navigation: Bluish labelling with white texts on hover */
+.theme-light button[data-tab="true"],
+.theme-light nav button,
+.theme-light .sidebar-tab,
+.theme-light [class*="sidebar"] button {
+  color: #2563EB !important; /* Bluish labelling */
+  background-color: #F8FAFC !important;
+  border-color: #DBEAFE !important;
+}
+
+.theme-light button[data-tab="true"]:hover,
+.theme-light nav button:hover,
+.theme-light .sidebar-tab:hover,
+.theme-light [class*="sidebar"] button:hover {
+  background-color: #2563EB !important; /* Blue background on hover */
+  color: #FFFFFF !important; /* White texts on hover */
+  border-color: #1D4ED8 !important;
+}
+
+.theme-light button[data-tab="true"]:hover *,
+.theme-light nav button:hover *,
+.theme-light .sidebar-tab:hover *,
+.theme-light [class*="sidebar"] button:hover * {
+  color: #FFFFFF !important;
+}
+
+/* Active Tabs: Solid Blue with White Text */
+.theme-light button[data-tab="true"][data-active="true"],
+.theme-light nav button[class*="bg-gradient"],
+.theme-light nav button[class*="bg-blue-"],
+.theme-light .sidebar-tab[data-active="true"] {
+  background-color: #1D4ED8 !important;
+  background-image: linear-gradient(to right, #2563EB, #1E40AF) !important;
+  color: #FFFFFF !important;
+  border-color: #1E3A8A !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25) !important;
+}
+
+.theme-light button[data-tab="true"][data-active="true"] *,
+.theme-light nav button[class*="bg-gradient"] *,
+.theme-light nav button[class*="bg-blue-"] *,
+.theme-light .sidebar-tab[data-active="true"] * {
+  color: #FFFFFF !important;
+}
+
