@@ -1,0 +1,6 @@
+{
+  "name": "Stock Exchange",
+  "description": "A fast stock analysis dashboard using deterministic algorithms and prefix trie search for rapid stock querying.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
