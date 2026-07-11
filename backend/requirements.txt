@@ -1,5 +1,7 @@
-Flask==3.0.0
-Flask-CORS==4.0.0
-PyJWT==2.13.0
-werkzeug==3.0.3
-pytest==8.1.1
+# Python Backend Requirements for Real-Time Tick Processing & API Server
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+pydantic>=2.6.0
+python-dotenv>=1.0.1
+flask>=3.0.0
+flask-cors>=4.0.0
